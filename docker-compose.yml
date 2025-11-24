@@ -1,0 +1,47 @@
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      - '80:80'
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - ollama
+    networks:
+      - ollama-network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    # persistence for models & chat history
+    volumes:
+      - ollama-data:/root/.ollama
+    # Expose port only to internal network, not to host
+    expose:
+      - '11434'
+    networks:
+      - ollama-network
+    # a bit more shared memory—helpful for larger models
+    shm_size: 1g
+    # --- GPU support ---
+    # For NVIDIA GPUs (requires nvidia‐container‐toolkit):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    # For AMD GPUs (ROCm):
+    # 1) Make sure your Docker daemon is configured with the "rocm" runtime.
+    # 2) Comment out the device_requests block above and uncomment the line below.
+    # runtime: rocm
+networks:
+  ollama-network:
+    driver: bridge
+
+volumes:
+  ollama-data:
