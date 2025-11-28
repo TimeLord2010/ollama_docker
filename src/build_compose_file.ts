@@ -83,28 +83,29 @@ export async function buildComposeFile() {
 
     const gpu = await detectGPU()
 
+    const services: Record<"ollama" | 'nginx', IdockerService> = {
+        nginx: {
+            image: 'nginx:alpine',
+            container_name: 'nginx-proxy',
+            restart: 'unless-stopped',
+            ports: ['80:80'],
+            volumes: ['./nginx.conf:/etc/nginx/nginx.conf:ro'],
+            depends_on: ['ollama'],
+            networks: ['ollama-network']
+        },
+        ollama: {
+            image: 'ollama/ollama:latest',
+            container_name: 'ollama',
+            restart: 'unless-stopped',
+            volumes: ['ollama-data:/root/.ollama'],
+            expose: ['11434'],
+            networks: ['ollama-network'],
+            shm_size: '1g'
+        }
+    }
     // Base compose structure
     const compose = {
-        services: {
-            nginx: {
-                image: 'nginx:alpine',
-                container_name: 'nginx-proxy',
-                restart: 'unless-stopped',
-                ports: ['80:80'],
-                volumes: ['./nginx.conf:/etc/nginx/nginx.conf:ro'],
-                depends_on: ['ollama'],
-                networks: ['ollama-network']
-            },
-            ollama: {
-                image: 'ollama/ollama:latest',
-                container_name: 'ollama',
-                restart: 'unless-stopped',
-                volumes: ['ollama-data:/root/.ollama'],
-                expose: ['11434'],
-                networks: ['ollama-network'],
-                shm_size: '1g'
-            }
-        },
+        services: services,
         networks: {
             'ollama-network': {
                 driver: 'bridge'
@@ -152,7 +153,7 @@ export async function buildComposeFile() {
  * @param {number} indent - Current indentation level
  * @returns {string} YAML string
  */
-function generateYAML(obj, indent = 0) {
+function generateYAML(obj: object, indent: number = 0): string {
     const spaces = '  '.repeat(indent)
     let yaml = ''
 
@@ -187,7 +188,7 @@ function generateYAML(obj, indent = 0) {
  * @param {any} value - The value to format
  * @returns {string} Formatted value
  */
-function formatValue(value) {
+function formatValue(value: string) {
     if (typeof value === 'string') {
         // Quote strings that contain special characters or look like numbers
         if (value.includes(':') || value.includes('#') || /^\d+$/.test(value) || value.includes("'")) {
@@ -196,4 +197,19 @@ function formatValue(value) {
         return value
     }
     return String(value)
+}
+
+
+interface IdockerService {
+    image: string
+    container_name: string
+    restart?: 'unless-stopped'
+    expose?: string[]
+    ports?: string[]
+    volumes: string[]
+    depends_on?: string[]
+    networks?: string[]
+    shm_size?: `${number}g`
+    deploy?: any
+    runtime?: string
 }

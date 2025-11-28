@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
+import { installOllama } from '../src/install_ollama.mjs'
 import { configureNginxAuth } from './src/configure_nginx_auth.mjs'
 import { installNginx } from './src/install_nginx.mjs'
-import { installOllama } from './src/install_ollama.mjs'
 
 console.log('🚀 Setting up Ollama with Nginx reverse proxy and API key authentication\n')
 
