@@ -43,15 +43,25 @@ export async function detectGpus(): Promise<Igpu[]> {
 
             // Check if amdgpu driver is loaded
             const driverCheck = await $`lsmod | grep amdgpu`.quiet().nothrow();
-            const isConfigured = driverCheck.exitCode === 0;
-            if (isConfigured) {
+            const driverLoaded = driverCheck.exitCode === 0;
+
+            // Check if ROCm is installed
+            const rocmCheck = await $`which rocm-smi`.quiet().nothrow();
+            const rocmInstalled = rocmCheck.exitCode === 0;
+
+            const isConfigured = driverLoaded && rocmInstalled;
+
+            if (driverLoaded) {
                 console.log("  Driver: amdgpu driver is loaded");
+            }
+            if (rocmInstalled) {
+                console.log("  ROCm: rocm-smi is available");
             }
 
             gpus.push({
                 type: 'amd',
                 name: gpuName,
-                isConfigured, // true if amdgpu driver is loaded
+                isConfigured,
             });
         }
 
