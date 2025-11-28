@@ -7,11 +7,9 @@ import { detectGpus } from '../detect_gpus';
  * It assumes it is running on an Ubuntu machine.
  */
 async function diagnoseGPU() {
-    console.log("Detecting GPU on Ubuntu system...\n");
-
     const gpus = await detectGpus()
-    for (const { name, type } of gpus) {
-        console.log(`✓ GPU detected: ${name} (${type})`);
+    for (const { name, type, isConfigured } of gpus) {
+        console.log(`✓ GPU detected: ${name} (${type}) ${isConfigured ? '' : '[UNCONFIGURED]'}`);
     }
 
     if (gpus.length == 0) {

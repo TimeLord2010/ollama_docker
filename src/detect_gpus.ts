@@ -27,8 +27,6 @@ export async function detectGpus(): Promise<Igpu[]> {
         const output = lspciCheck.stdout.toString();
 
         if (output.toLowerCase().includes('amd') || output.toLowerCase().includes('ati')) {
-            console.log("✓ AMD GPU detected");
-
             // Try to get more details
             const amdDetails = output.split('\n').find(line =>
                 line.toLowerCase().includes('amd') || line.toLowerCase().includes('ati')
