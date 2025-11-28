@@ -26,11 +26,12 @@ export async function detectGpus(): Promise<Igpu[]> {
     if (lspciCheck.exitCode === 0) {
         const output = lspciCheck.stdout.toString();
 
-        if (output.toLowerCase().includes('amd') || output.toLowerCase().includes('ati')) {
-            // Try to get more details
-            const amdDetails = output.split('\n').find(line =>
-                line.toLowerCase().includes('amd') || line.toLowerCase().includes('ati')
-            );
+        if (output.toLowerCase().includes('amd') || output.toLowerCase().includes('[ati]')) {
+            // Try to get more details - look for AMD or [ATI] but not just any 'ati' substring
+            const amdDetails = output.split('\n').find(line => {
+                const lower = line.toLowerCase();
+                return lower.includes('amd') || lower.includes('[ati]');
+            });
 
             let gpuName = 'AMD GPU';
             if (amdDetails) {
