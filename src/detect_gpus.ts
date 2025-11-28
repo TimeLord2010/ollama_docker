@@ -45,14 +45,23 @@ export async function detectGpus(): Promise<Igpu[]> {
             const driverCheck = await $`lsmod | grep amdgpu`.quiet().nothrow();
             const driverLoaded = driverCheck.exitCode === 0;
 
+            // Check if amdgpu DKMS package is installed
+            const dkmsCheck = await $`dkms status amdgpu`.quiet().nothrow();
+            const dkmsInstalled = dkmsCheck.exitCode === 0 && dkmsCheck.stdout.toString().includes('installed');
+
             // Check if ROCm is installed
             const rocmCheck = await $`which rocm-smi`.quiet().nothrow();
             const rocmInstalled = rocmCheck.exitCode === 0;
 
-            const isConfigured = driverLoaded && rocmInstalled;
+            // Consider it configured if either:
+            // 1. Driver is loaded and ROCm is installed, OR
+            // 2. DKMS is installed and ROCm is installed (driver may not load due to kernel compatibility)
+            const isConfigured = (driverLoaded || dkmsInstalled) && rocmInstalled;
 
             if (driverLoaded) {
                 console.log("  Driver: amdgpu driver is loaded");
+            } else if (dkmsInstalled) {
+                console.log("  Driver: amdgpu DKMS is installed (module not loaded - may be kernel compatibility issue)");
             }
             if (rocmInstalled) {
                 console.log("  ROCm: rocm-smi is available");
