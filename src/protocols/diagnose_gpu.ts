@@ -17,9 +17,24 @@ async function diagnoseGPU() {
                 console.log('\n⚠️  AMD GPU is not fully configured. Installing amdgpu driver and ROCm...\n');
 
                 try {
+                    // Discover the latest amdgpu installer package
+                    console.log('Discovering latest amdgpu installer version...');
+                    const response = await fetch('https://repo.radeon.com/amdgpu-install/latest/ubuntu/jammy/');
+                    const html = await response.text();
+
+                    // Parse HTML to find the .deb filename
+                    const match = html.match(/amdgpu-install_[\d.]+[-\d]+_all\.deb/);
+                    if (!match) {
+                        throw new Error('Could not find amdgpu installer package in repository');
+                    }
+
+                    const filename = match[0];
+                    const url = `https://repo.radeon.com/amdgpu-install/latest/ubuntu/jammy/${filename}`;
+                    console.log(`Found package: ${filename}`);
+
                     // Download amdgpu installer
                     console.log('Downloading amdgpu installer...');
-                    await $`wget https://repo.radeon.com/amdgpu-install/latest/ubuntu/jammy/amdgpu-install_6.2.60200-1_all.deb -O /tmp/amdgpu-install.deb`;
+                    await $`wget ${url} -O /tmp/amdgpu-install.deb`;
 
                     // Install the package
                     console.log('Installing amdgpu package...');
