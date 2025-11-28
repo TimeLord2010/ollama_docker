@@ -60,3 +60,5 @@ Environment="OLLAMA_HOST=0.0.0.0:11434"
         throw new Error('Failed to expose Ollama service')
     }
 }
+
+await runExposedOllama()
